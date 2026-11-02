@@ -94,7 +94,7 @@ p { margin: 0; }
 .site-header { position: sticky; top: 0; z-index: 50; background: var(--mask-deep); color: var(--silk); }
 .site-header .wrap { display: flex; align-items: center; gap: 16px; min-height: 68px; flex-wrap: wrap; padding-block: 8px; }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--silk); text-decoration: none; font: 600 1.3125rem/1.1 var(--display); margin-right: auto; }
-.brand img { width: 40px; height: 40px; border-radius: 50%; background: #fff; object-fit: cover; }
+.brand img { width: 40px; height: 40px; }
 .nav { display: flex; align-items: center; gap: 4px 20px; flex-wrap: wrap; }
 .nav a:not(.btn) { color: var(--silk); text-decoration: none; padding: 6px 0; border-bottom: 2px solid transparent; }
 .nav a:not(.btn):hover, .nav a[aria-current="page"] { border-bottom-color: var(--gold); }
@@ -142,7 +142,8 @@ html:not(.js) .icon-btn { display: none; }
 .pad-hole { fill: var(--mask-deep); }
 .chip { fill: var(--mask-deep); stroke: #3a5fae; stroke-width: 1.5; }
 .chip-pin { fill: var(--gold); }
-.chip-label { fill: var(--silk); font: 600 20px var(--display); letter-spacing: .06em; text-anchor: middle; }
+.chip-s { fill: none; stroke: var(--gold); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.chip-s-pad { fill: var(--gold); }
 
 .board:has(li:nth-child(1) a:hover, li:nth-child(1) a:focus-visible) .pad-1,
 .board:has(li:nth-child(2) a:hover, li:nth-child(2) a:focus-visible) .pad-2,

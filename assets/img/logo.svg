@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Safal Embedded Solution logo">
+  <path fill="#0a2a6e" d="M4 0H52L64 12V60a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4Z"/>
+  <path fill="none" stroke="#e0ae4a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M46 15H24L16 23V24L24 32H40L48 40V41L40 49H18"/>
+  <circle cx="46" cy="15" r="6.5" fill="#e0ae4a"/>
+  <circle cx="46" cy="15" r="2.5" fill="#0a2a6e"/>
+  <circle cx="18" cy="49" r="6.5" fill="#e0ae4a"/>
+  <circle cx="18" cy="49" r="2.5" fill="#0a2a6e"/>
+</svg>
