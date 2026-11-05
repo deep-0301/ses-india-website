@@ -1,0 +1,29 @@
+# One Worker per client. Copy this folder, change name, vars and knowledge.md.
+name = "safal-ai-chat"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Lets src/index.js import knowledge.md as text.
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+
+[vars]
+BUSINESS_NAME = "Safal Embedded Solution"
+# Websites allowed to use this chat, comma separated, no trailing slash.
+ALLOWED_ORIGINS = "https://ses-india.com,https://www.ses-india.com,https://deep-0301.github.io"
+MODEL = "claude-opus-5-5"
+EFFORT = "low"
+
+# 20 messages per minute per visitor IP.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }
+
+[observability]
+enabled = true
+
+# The API key is a secret, never a var:  npx wrangler secret put ANTHROPIC_API_KEY
