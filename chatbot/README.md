@@ -9,7 +9,7 @@ Two AI providers are built in, chosen with `PROVIDER` in `server/wrangler.toml`:
 
 ```
 Visitor's browser                 Cloudflare Worker (free plan)            Workers AI or Anthropic API
-chatbot/widget/ai-chat.js  --->   chatbot/server  (holds the API key,  ---> Claude
+chatbot/widget/ai-chat.js  --->   chatbot/server  (checks the site,    --->
   (chat button + panel)    <---   adds knowledge.md, streams reply)  <---
 ```
 
@@ -18,7 +18,7 @@ With Claude, the API key lives only in the Worker's secrets. The website never s
 | Path | What it is |
 | --- | --- |
 | `widget/ai-chat.js` | The chat button and panel. One file, no dependencies. Configured with `data-` attributes on its `<script>` tag. |
-| `server/src/index.js` | The proxy. Checks the website's origin, rate-limits by visitor IP, calls Claude and streams the answer. |
+| `server/src/index.js` | The proxy. Checks the website's origin, rate-limits by visitor IP, calls the AI (Workers AI or Claude) and streams the answer. |
 | `server/knowledge.md` | Everything the assistant knows about the company. Edit this to change its answers. |
 | `server/wrangler.toml` | Worker name, allowed websites, model and rate limit. |
 
