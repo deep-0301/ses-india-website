@@ -19,3 +19,4 @@ Plain HTML, CSS and JavaScript with no build step, so any static host can serve 
 - **Colours and layout:** `assets/css/site.css`. The colours are the variables at the top of the file.
 - **Contact form:** messages are sent through EmailJS using the IDs at the top of `assets/js/site.js`. The public key is meant to be visible in the browser.
 - **WhatsApp number:** search the HTML files for `wa.me`.
+- **AI chat assistant:** see [`chatbot/README.md`](chatbot/README.md) to go live, change what it knows, or reuse it.

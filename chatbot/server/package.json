@@ -1,0 +1,18 @@
+{
+  "name": "dk-ai-chat-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DK Solutions AI chat proxy (Cloudflare Worker). Keeps the Anthropic API key off the website.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}
