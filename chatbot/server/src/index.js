@@ -84,6 +84,73 @@ function cleanMessages(input) {
   return out.length ? out : null;
 }
 
+// PROVIDER = "claude" uses the Anthropic API (needs the ANTHROPIC_API_KEY secret and API credit).
+// PROVIDER = "workers-ai" uses Cloudflare's own models through the AI binding: free daily allowance, no key.
+function useClaude(env) {
+  return (env.PROVIDER || 'claude') === 'claude';
+}
+
+async function streamClaude(env, messages, send) {
+  const model = env.MODEL || 'claude-opus-5-5';
+  const params = {
+    model,
+    max_tokens: 8000,
+    output_config: { effort: env.EFFORT || 'low' },
+    cache_control: { type: 'ephemeral' },
+    system: systemPrompt(env),
+    messages,
+  };
+  // Haiku has no server-side fallback; the larger models retry a policy decline on another model.
+  if (!model.startsWith('claude-haiku')) {
+    params.betas = ['server-side-fallback-2026-07-01'];
+    params.fallbacks = 'default';
+  }
+  const client = new Anthropic({
+    apiKey: env.ANTHROPIC_API_KEY,
+    baseURL: env.ANTHROPIC_BASE_URL || undefined, // only set for local testing
+    maxRetries: 1,
+  });
+  const stream = client.beta.messages.stream(params);
+  for await (const event of stream) {
+    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      await send('delta', { text: event.delta.text });
+    }
+  }
+  const final = await stream.finalMessage();
+  if (final.stop_reason === 'refusal') await send('refusal', {});
+}
+
+async function streamWorkersAI(env, messages, send) {
+  const model = env.WORKERS_AI_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+  const stream = await env.AI.run(model, {
+    messages: [{ role: 'system', content: systemPrompt(env) }, ...messages],
+    max_tokens: 1024,
+    stream: true,
+  });
+  const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += value;
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (!data || data === '[DONE]') continue;
+      try {
+        const j = JSON.parse(data);
+        // Older models send { response }, newer ones an OpenAI-style delta.
+        const text = j.response ?? j.choices?.[0]?.delta?.content ?? '';
+        if (text) await send('delta', { text });
+      } catch {
+        /* skip a partial line */
+      }
+    }
+  }
+}
+
 export default {
   async fetch(request, env) {
     const cors = corsHeaders(request, env);
@@ -100,7 +167,7 @@ export default {
     if (!cors.ok) {
       return json(403, { error: 'This website is not allowed to use this chat.' }, cors.headers);
     }
-    if (!env.ANTHROPIC_API_KEY) {
+    if (useClaude(env) ? !env.ANTHROPIC_API_KEY : !env.AI) {
       return json(500, { error: 'The chat is not set up yet.' }, cors.headers);
     }
 
@@ -123,47 +190,19 @@ export default {
       return json(400, { error: 'Invalid conversation.' }, cors.headers);
     }
 
-    const model = env.MODEL || 'claude-opus-5-5';
-    const params = {
-      model,
-      max_tokens: 8000,
-      output_config: { effort: env.EFFORT || 'low' },
-      cache_control: { type: 'ephemeral' },
-      system: systemPrompt(env),
-      messages,
-    };
-    // Haiku has no server-side fallback; the larger models retry a policy decline on another model.
-    if (!model.startsWith('claude-haiku')) {
-      params.betas = ['server-side-fallback-2026-07-01'];
-      params.fallbacks = 'default';
-    }
-
-    const client = new Anthropic({
-      apiKey: env.ANTHROPIC_API_KEY,
-      baseURL: env.ANTHROPIC_BASE_URL || undefined, // only set for local testing
-      maxRetries: 1,
-    });
     const encoder = new TextEncoder();
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
     const send = (event, data) =>
       writer.write(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
 
+    const run = useClaude(env) ? streamClaude : streamWorkersAI;
     (async () => {
       try {
-        const stream = client.beta.messages.stream(params);
-        for await (const event of stream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-            await send('delta', { text: event.delta.text });
-          }
-        }
-        const final = await stream.finalMessage();
-        if (final.stop_reason === 'refusal') {
-          await send('refusal', {});
-        }
+        await run(env, messages, send);
         await send('done', {});
       } catch (err) {
-        const status = err instanceof Anthropic.APIError ? err.status : undefined;
+        const status = err && err.status;
         console.error('chat error', status, err && err.message);
         const busy = status === 429 || status === 529;
         await send('error', {

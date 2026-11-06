@@ -14,8 +14,15 @@ fallthrough = true
 BUSINESS_NAME = "Safal Embedded Solution"
 # Websites allowed to use this chat, comma separated, no trailing slash.
 ALLOWED_ORIGINS = "https://ses-india.com,https://www.ses-india.com,https://deep-0301.github.io"
+# "workers-ai" = Cloudflare's free models, no API key needed.
+# "claude"     = Claude via the Anthropic API (set the ANTHROPIC_API_KEY secret and add API credit).
+PROVIDER = "workers-ai"
+WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 MODEL = "claude-opus-5-5"
 EFFORT = "low"
+
+[ai]
+binding = "AI"
 
 # 20 messages per minute per visitor IP.
 [[ratelimits]]
@@ -26,4 +33,4 @@ simple = { limit = 20, period = 60 }
 [observability]
 enabled = true
 
-# The API key is a secret, never a var:  npx wrangler secret put ANTHROPIC_API_KEY
+# Only for PROVIDER = "claude". The key is a secret, never a var:  npx wrangler secret put ANTHROPIC_API_KEY
